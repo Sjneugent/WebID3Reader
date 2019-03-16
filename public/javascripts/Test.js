@@ -27,13 +27,8 @@ export default class Test {
         xmlHttpRequest.fileInfo = {fileName: this.fileData.name};
         xmlHttpRequest.setRequestHeader('Content-Disposition', 'attachment; filename="' + this.fileData.name + '"');
         xmlHttpRequest.upload.onprogress = this.fileProgress.bind(this);
-        xmlHttpRequest.upload.onloadend =  function () {
-            console.error(xmlHttpRequest);
-        }
+        xmlHttpRequest.upload.onloadend =  this.fileDone.bind(this);
 
-        xmlHttpRequest.onload = function() {
-            console.error("on load finished");
-        }
 
 
         xmlHttpRequest.send(this.fileData);
@@ -47,7 +42,6 @@ export default class Test {
     fileSelected(e){
         this.fileData = e.target.files[0];
         this.controls.fileDescriptor.innerText = e.target.files[0].name;
-
     }
 
     /**

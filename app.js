@@ -2,7 +2,7 @@ let express = require('express');
 let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
-
+let fs = require('fs');
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 let uploadRouter =require('./routes/upload');
@@ -18,5 +18,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/upload', uploadRouter);
+
+if(!fs.existsSync('./uploaded'))
+    fs.mkdir('./uploaded')
 
 module.exports = app;
