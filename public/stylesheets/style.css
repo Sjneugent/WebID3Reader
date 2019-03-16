@@ -3,6 +3,20 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+button.selectUploadButton {
+}
+
+#upload-container {
+  display: flex;
+  width: 500px;
+  height: 30px;
+  justify-items: left;
+  flex-direction: row;
+}
+
+div.file-descriptor {
+  min-width: 200px;
+  height: 30px;
+  background-color: grey;
+  color: white;
 }
