@@ -20,6 +20,6 @@ app.use('/users', usersRouter);
 app.use('/upload', uploadRouter);
 
 if(!fs.existsSync('./uploaded'))
-    fs.mkdir('./uploaded')
+    fs.mkdir('./uploaded');
 
 module.exports = app;

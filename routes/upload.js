@@ -1,23 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path')
+const path = require('path');
 const fs = require('fs');
-const parseHeader = require('../js/parseHeader');
-const crypto = require('crypto');
+let HandleUpload = require("../js/handleUpload");
+let SaveFile = require("../js/saveFile");
+
 router.get('/', function(req, res, next) {
     res.sendFile(path.resolve('public/html/upload.html'), {title: "upload"});
 });
 
 router.post('/', function(req, res, next){
-    let attachedHeader = req.headers['content-disposition'];
-    let fileName = parseHeader(attachedHeader);
-    fileName = 'uploaded/' + fileName;
-    const file = fs.createWriteStream(fileName);
-    req.on('data', (chunk) => file.write(chunk));
-    req.on('end', () => {
+    const handleUpload = new HandleUpload(req);
+    let fileName = handleUpload.getFileName();
+    // fileName = 'uploaded/' + fileName;
+    const saveFile = new SaveFile(req, fileName);
+    //Working - Start
+    //req.on('data', (e) => file.write(e));
+    //req.on('end', () => {
+        //file.end();
+      //  res.send('We done');
+    // })
+    //Working -- End
+    //TODO: Have some async callback/promise so we don't have to have this in the post method
+    req.on('end', (e) => {
         res.send('File uploaded with name ' + fileName);
-        file.end();
-    });
+        saveFile._uploadFinished(e);
+     });
 
 });
 module.exports = router;
