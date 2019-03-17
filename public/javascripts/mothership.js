@@ -1,4 +1,4 @@
-import Test from "./Test.js";
+import MediaUpload from "./MediaUpload.js";
 
-console.error(Test);
-let a = new Test();
+console.error(MediaUpload);
+let a = new MediaUpload();

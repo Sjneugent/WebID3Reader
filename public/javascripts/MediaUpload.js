@@ -1,4 +1,4 @@
-export default class Test {
+export default class MediaUpload {
     constructor(){
         this.fileData = undefined;
         this.controls = {
@@ -6,7 +6,10 @@ export default class Test {
             startUpload: document.querySelector("button.selectUploadButton"),
             hiddenInput: document.querySelector("input[type='file']"),
             fileDescriptor: document.querySelector("div.file-descriptor"),
-            postFileButton: document.getElementById("sendFile")
+            postFileButton: document.getElementById("sendFile"),
+            uploadResponse: document.getElementById("upload-responses"),
+            uploadStatus: document.querySelector("div.upload-status")
+
         };
         console.error(this.controls.startUpload);
         this.controls.startUpload.onclick = this.selectFileClick.bind(this);
@@ -15,7 +18,8 @@ export default class Test {
 
     }
     fileDone(e){
-        console.error(e);
+        console.error(e.target.responseText);
+        this.controls.uploadStatus.innerText = e.target.responseText;
     }
     fileProgress(e){
         console.error(e);
@@ -26,13 +30,12 @@ export default class Test {
         xmlHttpRequest.setRequestHeader('Content-Type', this.fileData.type);
         xmlHttpRequest.fileInfo = {fileName: this.fileData.name};
         xmlHttpRequest.setRequestHeader('Content-Disposition', 'attachment; filename="' + this.fileData.name + '"');
-        xmlHttpRequest.upload.onprogress = this.fileProgress.bind(this);
-        xmlHttpRequest.upload.onloadend =  this.fileDone.bind(this);
-
-
-
+        xmlHttpRequest.upload.onprogress = this.fileProgress.bind(xmlHttpRequest);
+        xmlHttpRequest.upload.onloadend =  function () {
+            console.error("upload onloadend reached");
+        };
+        xmlHttpRequest.onloadend = this.fileDone.bind(this);
         xmlHttpRequest.send(this.fileData);
-
     }
 
     /**

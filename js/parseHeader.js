@@ -1,3 +1,8 @@
+/**
+ *  Stolen from stack overflow :)
+ * @param contentDisposition
+ * @returns {string}
+ */
 function returnFileName(contentDisposition){
     let fileName = "";
     if(contentDisposition && contentDisposition.indexOf('attachment') !== -1){
