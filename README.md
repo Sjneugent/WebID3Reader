@@ -1,1 +1,1 @@
-Express.js Webserver + AJAX = Uploading files for now
+Express.js Web Server + AJAX = Uploading files for now
