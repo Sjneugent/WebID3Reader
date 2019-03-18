@@ -1,19 +1,40 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const fs = require('fs');
 let HandleUpload = require("../js/handleUpload");
 let SaveFile = require("../js/saveFile");
-
+let DB = require('../js/db');
+let ExtractFileInfo = require('../js/extractFileInfo');
 router.get('/', function(req, res, next) {
     res.sendFile(path.resolve('public/html/upload.html'), {title: "upload"});
 });
 
+/**
+ *
+ *  POST => localhost:3000/upload/
+ *  Receive XMLHTTPRequest with file info.  on.('data') chunks are sent and written with fs.write
+ */
 router.post('/', function(req, res, next){
+    const db = new DB();
+    db._connect();
+
     const handleUpload = new HandleUpload(req);
-    let fileName = handleUpload.getFileName();
-    // fileName = 'uploaded/' + fileName;
+    const fileName = handleUpload.getFileName();
     const saveFile = new SaveFile(req, fileName);
+
+    //TODO: Have some async callback/promise so we don't have to have this in the post method
+    req.on('end', (e) => {
+        res.send('File uploaded with name ' + fileName);
+        saveFile._uploadFinished(e);
+        let fileHandle = saveFile._returnFileHandle();
+        // console.error("returned file handle", fileHandle);
+
+        let extract = new ExtractFileInfo(fileHandle);
+        let extractedInfo = extract._returnFileObject();
+        // extract._closeFileHandle();
+        console.error(extractedInfo);
+    });
+
     //Working - Start
     //req.on('data', (e) => file.write(e));
     //req.on('end', () => {
@@ -21,11 +42,7 @@ router.post('/', function(req, res, next){
       //  res.send('We done');
     // })
     //Working -- End
-    //TODO: Have some async callback/promise so we don't have to have this in the post method
-    req.on('end', (e) => {
-        res.send('File uploaded with name ' + fileName);
-        saveFile._uploadFinished(e);
-     });
+
 
 });
 module.exports = router;
