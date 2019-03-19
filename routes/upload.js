@@ -27,12 +27,12 @@ router.post('/', function(req, res, next){
         res.send('File uploaded with name ' + fileName);
         saveFile._uploadFinished(e);
         let fileHandle = saveFile._returnFileHandle();
-        // console.error("returned file handle", fileHandle);
 
         let extract = new ExtractFileInfo(fileHandle);
         let extractedInfo = extract._returnFileObject();
+        db._insertFileInfo(extractedInfo);
+        extract._closeFileHandle();
         // extract._closeFileHandle();
-        console.error(extractedInfo);
     });
 
     //Working - Start

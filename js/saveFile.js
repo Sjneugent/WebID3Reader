@@ -21,6 +21,10 @@ class SaveFile {
         return fs.createReadStream(this.savedDirectory + this.fileName)
     }
 
+    _returnFilePath() {
+         return this.savedDirectory + this.fileName;
+    }
+
 }
 
 module.exports = SaveFile;

@@ -1,19 +1,17 @@
 const fs = require('fs');
 const crypto = require('crypto');
+const md5File = require('md5-file');
 
 class ExtractFileInfo {
-    constructor(fileHandle){
+    /**
+     *
+     * @param fileHandle = fs.fileReadStream
+     */
+    constructor(fileHandle) {
         this.fileHandle = fileHandle;
-        let stats = fs.stat(fileHandle.path, (err, stats) => {
-            this.size = stats.size;
-        });
-        this.digest = 0;
+        this.size = fs.statSync(fileHandle.path).size;
         this.statPath = fileHandle.path;
-        this._generateHashForHandle(this._displayDigest());
-    }
-    _displayDigest(e) {
-        console.error("displayDigest");
-        console.error(e);
+        this.digest = md5File.sync(this.fileHandle.path);
     }
     _closeFileHandle() {
         this.fileHandle.close();
@@ -26,21 +24,6 @@ class ExtractFileInfo {
             hash: this.digest,
             name: this.statPath
         };
-    }
-    _generateHashForHandle(callback) {
-        let algo = 'md5';
-        let hashTable = new Array();
-        let hash  = crypto.createHash(algo);
-        this.fileHandle.on('data', function(data){
-            hash.update(data);
-        });
-        let digest = this.fileHandle.on('end', function () {
-            // return hash.digest('hex')
-
-          return hash.digest('hex');
-        });
-        console.error(digest);
-
     }
 
 }

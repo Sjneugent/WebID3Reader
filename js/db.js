@@ -21,6 +21,24 @@ class DB {
         });
     }
 
+    /**
+     * fileStruct {
+     *     size,
+     *     path,
+     *     hash,
+     *     name
+     * }
+     * @param fileStruct
+     * @private
+     */
+    _insertFileInfo(fileStruct){
+        this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (\"${fileStruct.path}\", \"${fileStruct.name}\", \"${fileStruct.hash}\", \"${fileStruct.size}\");`, function (error, results, fields){
+            console.error(results);
+            console.error(error);
+        });
+        this.connection.commit();
+    }
+
 
 
 }
