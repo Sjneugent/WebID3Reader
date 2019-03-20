@@ -9,11 +9,18 @@ class SaveFile {
         fs.mkdirSync(`${this.uploadDir}`);
 
         this.fileWriteStream = fs.createWriteStream(`${this.uploadDir}/` + fileName);
+        // this.fileWriteStream.on('close', () => {
+     //       console.error("Close on fileWriteStream");
+        // })
+        // this.fileWriteStream.on('finish', () => { this.fileWriteStream.end(); console.error("it srsly finished") } );
+        // this.fileWriteStream.on('end', () => { this.fileWriteStream.end(); console.error("it srsly ended") } );
+
         //TODO:  with larger requests it fucked up -- maybe not now.
+        // NO I DIDNT FUCK UP.  IT SAVES THE FILE JUST FINE
         //I was closing the fileWriteStream as soon as the request was uploaded, but it needed more time.
         // this.request.on('data', this._writeChunk.bind(this));
 
-        // this.request.on('end', () =>  { console.error("end request "); this.fileWriteStream.close(); this.fileWriteStream.end(); } );
+         this.request.on('end', () =>  { console.error("end request on saveFile.js"); } );
     }
     _returnFileStream() {
         return this.fileWriteStream;
@@ -22,10 +29,12 @@ class SaveFile {
         this.fileWriteStream.write(chunk);
     }
 
+    //need some way to propogate this up
     _uploadFinished(event) {
+         // this.fileWriteStream.end();
         //dont end the fileWriteStream until the file write stream is done!
-        this.fileWriteStream.on('end', () => this.fileWriteStream.end());
-        // this.fileWriteStream.end();
+        // this.fileWriteStream.on('finish', () => { this.fileWriteStream.end(); console.error("it srsly ended") } );
+         this.fileWriteStream.end();
     }
 
     // _returnFileHandle() {

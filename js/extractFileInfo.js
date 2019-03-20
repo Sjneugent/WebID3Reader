@@ -10,23 +10,24 @@ class ExtractFileInfo {
     constructor(filePath) {
         this.filePath = filePath;
         this.size = fs.statSync(filePath).size;
-        console.error(this.size);
         this.statPath = filePath;
     }
-    _closeFileHandle() {
-        // this.fileHandle.close();
-    }
+    /**
+     * HOLY SHIT
+     *  THE FILE WRITES COMPLETELY CORRECTLY. 100% after checking hashes.
+     *  BUT, BUT, MY GOD.  This fucker starts reading it while its still writing!!!!!
+     *  TODO:  INVESTIGATE OTHER MD5 libraries or oll own.
+     * @returns {*}
+     * @private
+     */
     _returnDigest() {
-        // console.error("path: " + this.filePath+ " == " + md5File.sync(this.filePath));
         return md5File.sync(this.filePath);
     }
     _returnSize() {
-        // console.error(fs.statSync(this.filePath));
         return fs.statSync(this.filePath).size;
     }
 
     _returnFileObject() {
-        console.error(`File with name ${this.statPath} has hash ${this._returnDigest()}`);
         return {
             size: this._returnSize(),
             path: this.statPath,
@@ -34,6 +35,10 @@ class ExtractFileInfo {
             name: this.statPath
         };
     }
+    _returnFilePath() {
+        return this.statPath;
+    }
+
 
 }
 module.exports = ExtractFileInfo;
