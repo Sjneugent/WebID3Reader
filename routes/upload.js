@@ -23,16 +23,33 @@ router.post('/', function(req, res, next){
     const saveFile = new SaveFile(req, fileName);
 
     //TODO: Have some async callback/promise so we don't have to have this in the post method
-    req.on('end', (e) => {
+    //initial request ended
+    req.on('data', (e) => {
+        saveFile._writeChunk(e);
+    }).on('end', (e) => {
+
         res.send('File uploaded with name ' + fileName);
         saveFile._uploadFinished(e);
-        let fileHandle = saveFile._returnFileHandle();
-
+        let fileHandle = saveFile._returnFilePath();
         let extract = new ExtractFileInfo(fileHandle);
         let extractedInfo = extract._returnFileObject();
-        db._insertFileInfo(extractedInfo);
-        extract._closeFileHandle();
-        // extract._closeFileHandle();
+
+        db._fileAsync(extractedInfo.hash, function(err, data){
+            if(err)
+                return;
+            console.error(data);
+            if(data.length === 0){
+                console.error("inserting file with hash: " + extractedInfo.hash + " into database");
+                extract._closeFileHandle();
+                db._insertFileInfo(extractedInfo);
+
+            }else {
+                extract._closeFileHandle();
+
+                console.error("file exists already");
+            }
+            extract._closeFileHandle();
+        });
     });
 
     //Working - Start
