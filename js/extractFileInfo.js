@@ -17,11 +17,11 @@ class ExtractFileInfo {
         // this.fileHandle.close();
     }
     _returnDigest() {
-        console.error("path: " + this.filePath+ " == " + md5File.sync(this.filePath));
+        // console.error("path: " + this.filePath+ " == " + md5File.sync(this.filePath));
         return md5File.sync(this.filePath);
     }
     _returnSize() {
-        console.error(fs.statSync(this.filePath));
+        // console.error(fs.statSync(this.filePath));
         return fs.statSync(this.filePath).size;
     }
 

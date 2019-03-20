@@ -27,39 +27,27 @@ router.post('/', function(req, res, next){
     req.on('data', (e) => {
         saveFile._writeChunk(e);
     }).on('end', (e) => {
-
+        //post is done.
         res.send('File uploaded with name ' + fileName);
+        // we dont know the request is done uploading -- but it is fully written to disk?
+        // I think this solution is momentarily correct.
         saveFile._uploadFinished(e);
         let fileHandle = saveFile._returnFilePath();
         let extract = new ExtractFileInfo(fileHandle);
         let extractedInfo = extract._returnFileObject();
 
         db._fileAsync(extractedInfo.hash, function(err, data){
-            if(err)
+            if(err){
+                console.error("Error executing query");
                 return;
-            console.error(data);
+            }
             if(data.length === 0){
-                console.error("inserting file with hash: " + extractedInfo.hash + " into database");
-                extract._closeFileHandle();
+                console.log("inserting file with hash: " + extractedInfo.hash + " into database");
                 db._insertFileInfo(extractedInfo);
-
             }else {
-                extract._closeFileHandle();
-
                 console.error("file exists already");
             }
-            extract._closeFileHandle();
         });
     });
-
-    //Working - Start
-    //req.on('data', (e) => file.write(e));
-    //req.on('end', () => {
-        //file.end();
-      //  res.send('We done');
-    // })
-    //Working -- End
-
-
 });
 module.exports = router;
