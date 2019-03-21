@@ -15,9 +15,6 @@ class DB {
             database: this.database
         });
         this.connection.connect();
-
-        // this.connection.query("SELECT * FROM FileInfo", function (error, results, fields){
-        // });
     }
 
     /**
@@ -28,9 +25,8 @@ class DB {
      *     name
      * }
      * @param fileStruct
-     * @private
      */
-    _insertFileInfo(fileStruct){
+    insertFileInfo(fileStruct){
         // doesn't need to be async
         this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (\"${fileStruct.path}\", \"${fileStruct.name}\", \"${fileStruct.hash}\", \"${fileStruct.size}\");`, function (error, results, fields){
             // console.error(results);
@@ -39,7 +35,12 @@ class DB {
         this.connection.commit();
     }
 
-    _fileAsync(fileHash, callback) {
+    /**
+     *
+     * @param fileHash
+     * @param callback
+     */
+    fileExistsAsync(fileHash, callback) {
         this.connection.query(`SELECT Hash FROM fileInfo WHERE Hash = "${fileHash}"`, (error, results, fields) => {
             if(error){
                 callback(error, null);

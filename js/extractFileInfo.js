@@ -1,5 +1,4 @@
 const fs = require('fs');
-const crypto = require('crypto');
 const md5File = require('md5-file');
 
 class ExtractFileInfo {
@@ -9,6 +8,7 @@ class ExtractFileInfo {
      */
     constructor(filePath) {
         this.filePath = filePath;
+        //TODO: Make this asyncronous
         this.size = fs.statSync(filePath).size;
         this.statPath = filePath;
     }

@@ -1,13 +1,15 @@
 const path = require('path');
 const fs = require('fs');
-class SaveFile {
+const events = require('events');
+const EventEmitter = require('events').EventEmitter;
+class SaveFile extends EventEmitter{
     constructor(request, fileName, savedDirectory = './uploaded/'){
+        super();
         this.savedDirectory = savedDirectory;
         this.fileName = fileName;
         this.request = request;
         this.uploadDir = './uploaded/' + Math.floor(Math.random() * 10000000);
         fs.mkdirSync(`${this.uploadDir}`);
-
         this.fileWriteStream = fs.createWriteStream(`${this.uploadDir}/` + fileName);
         // this.fileWriteStream.on('close', () => {
      //       console.error("Close on fileWriteStream");
@@ -21,6 +23,10 @@ class SaveFile {
         // this.request.on('data', this._writeChunk.bind(this));
 
          this.request.on('end', () =>  { console.error("end request on saveFile.js"); } );
+         this.fileWriteStream.on('close', () =>{
+             this.emit('FileStreamClosed', {id: "Ended"});
+             console.error("file Write Stream close");
+         } );
     }
     _returnFileStream() {
         return this.fileWriteStream;
