@@ -27,7 +27,11 @@ class DB {
      * @param fileStruct
      */
     insertFileInfo(fileStruct, callback) {
-        this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (\"${fileStruct.path}\", \"${fileStruct.name}\", \"${fileStruct.hash}\", \"${fileStruct.size}\");`, (error, results, fields) => {
+        let path = this.connection.escape(fileStruct.path);
+        let name = this.connection.escape(fileStruct.name);
+        let hash = this.connection.escape(fileStruct.hash);
+        let size = this.connection.escape(fileStruct.size);
+        this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (${path}, ${name}, ${hash}, ${size});`, (error, results, fields) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -37,9 +41,27 @@ class DB {
         this.connection.commit();
     }
 
+    /**
+     *
+     *  (Incomplete) file metadata storage
+     * @param id3Structure - Culmination of the readfile events from media-info
+     * @param hash - file hash.  Since this table is created right after the fileinfo insert, you should still have the hash
+     * @param callback - Give back the results to upload.js
+     */
     insertFileMetadata(id3Structure, hash, callback) {
-        this.connection.query(`INSERT INTO fileMetadata (Album, TrackName, Format, Duration, AlbumPerformer, Performer, Genre, RecordedDate, Hash) VALUES("${id3Structure.common.album}", "${id3Structure.common.title}", "${id3Structure.format.dataformat}", ${id3Structure.format.duration},"${id3Structure.common.artist}",  "${id3Structure.common.artist}", "${id3Structure.common.genre}", ${id3Structure.common.year}, "${hash}");`, function (error, results, fields) {
-            console.error(error);
+        let album = this.connection.escape(id3Structure.common.album);
+        let title = this.connection.escape(id3Structure.common.title);
+        let dataFormat = this.connection.escape(id3Structure.format.dataformat);
+        let duration = this.connection.escape(id3Structure.format.duration);
+        let artist = this.connection.escape(id3Structure.common.artist);
+        let genre = this.connection.escape(id3Structure.common.genre);
+        let year = this.connection.escape(id3Structure.common.year);
+        let bitRate = this.connection.escape(id3Structure.format.bitrate);
+        let encoder = this.connection.escape(id3Structure.format.encoder);
+
+        this.connection.query(`INSERT INTO fileMetadata (Album, TrackName, Format, Duration, AlbumPerformer, Performer, Genre, RecordedDate, Hash, OverallBitRate, WritingLibrary)`
+                                + `VALUES(${album}, ${title}, ${dataFormat}, ${duration},${artist},`
+                                + `${artist}, ${genre}, ${year}, ${hash}, ${bitRate}, ${encoder});`, function (error, results, fields) {
             if (error)
                 callback(error, null);
             else
@@ -48,6 +70,11 @@ class DB {
         this.connection.commit();
     }
 
+    /**
+     *  If you have the id of fileinfo and filemetadata we add these together so if you have a fileId and want the info from the other table, you dont have to start hashing shit to get it.
+     * @param fileInfoId - can be queried via hash
+     * @param fileMetadataId - can be queried via hash
+     */
     joinTableIds(fileInfoId, fileMetadataId) {
         this.connection.query(`INSERT INTO fileinfometadata (fileInfoID, fileMetadataId) VALUES(${fileInfoId}, ${fileMetadataId});`, function (result, error, fields) {
             console.error("Finished the joint table");
@@ -55,6 +82,12 @@ class DB {
         this.connection.commit();
     }
 
+    /**
+     *  Not so much as search BY hash, as it is join two tables via hash
+     * @param hash
+     * @param callback
+     * @param reqObject
+     */
     searchByHash(hash, callback, reqObject) {
         let joinQuery = `SELECT fileInfo.*, fileMetadata.* FROM fileMetadata LEFT JOIN fileInfo ON fileInfo.Hash = fileMetadata.Hash WHERE fileInfo.Hash = "${hash}";`;
         this.connection.query(joinQuery, (err, res, field) => {

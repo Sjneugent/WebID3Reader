@@ -44,7 +44,8 @@ router.post('/', function (req, res, next) {
                     db.insertFileInfo(extract, (err, id) => {
                         let mediaParer = new MetadataHandler(extract.path);
                         mediaParer.on('MetadataObjectCreated', (f) => {
-                            console.error("MetadataObjectCreated");
+                            console.error(f);
+                            // console.error("MetadataObjectCreated");
                             db.insertFileMetadata(f, extract.hash, (err, metaId) => {
                                 console.error("Insert File Metadata id " + metaId);
                                 db.joinTableIds(id, metaId);
