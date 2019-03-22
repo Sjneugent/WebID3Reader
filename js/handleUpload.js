@@ -1,8 +1,9 @@
 const headerParse = require('../js/parseHeader');
+
 class HandleUpload {
-    constructor(request){
+    constructor(request) {
         this.request = request;
-        this.fileName =  headerParse(this.request.headers['content-disposition']);
+        this.fileName = headerParse(this.request.headers['content-disposition']);
     }
 
     getFileName() {
@@ -10,4 +11,5 @@ class HandleUpload {
     }
 
 }
+
 module.exports = HandleUpload;

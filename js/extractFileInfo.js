@@ -11,6 +11,7 @@ class ExtractFileInfo {
         //TODO: Make this asyncronous
         this.statPath = filePath;
     }
+
     /**
      * HOLY SHIT
      *  THE FILE WRITES COMPLETELY CORRECTLY. 100% after checking hashes.
@@ -22,6 +23,7 @@ class ExtractFileInfo {
     _returnDigest() {
         return md5File.sync(this.filePath);
     }
+
     _returnSize() {
         return fs.statSync(this.filePath).size;
     }
@@ -34,6 +36,7 @@ class ExtractFileInfo {
             name: this._returnFileName()
         };
     }
+
     _returnFilePath() {
         return this.statPath;
     }
@@ -43,6 +46,6 @@ class ExtractFileInfo {
     }
 
 
-
 }
+
 module.exports = ExtractFileInfo;

@@ -1,5 +1,5 @@
 export default class MediaUpload {
-    constructor(){
+    constructor() {
         this.fileData = undefined;
         this.controls = {
             myDiv: document.getElementById("upload-container"),
@@ -17,21 +17,24 @@ export default class MediaUpload {
         this.controls.postFileButton.onclick = this.postFile.bind(this);
 
     }
-    fileDone(e){
+
+    fileDone(e) {
         console.error(e.target.responseText);
         this.controls.uploadStatus.innerText = e.target.responseText;
     }
-    fileProgress(e){
+
+    fileProgress(e) {
         console.error(e);
     }
-    postFile(e){
+
+    postFile(e) {
         let xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('POST', '/upload/', true);
         xmlHttpRequest.setRequestHeader('Content-Type', this.fileData.type);
         xmlHttpRequest.fileInfo = {fileName: this.fileData.name};
         xmlHttpRequest.setRequestHeader('Content-Disposition', 'attachment; filename="' + this.fileData.name + '"');
         xmlHttpRequest.upload.onprogress = this.fileProgress.bind(xmlHttpRequest);
-        xmlHttpRequest.upload.onloadend =  function () {
+        xmlHttpRequest.upload.onloadend = function () {
             console.error("upload onloadend reached");
         };
         xmlHttpRequest.onloadend = this.fileDone.bind(this);
@@ -42,7 +45,7 @@ export default class MediaUpload {
      *
      * @param e
      */
-    fileSelected(e){
+    fileSelected(e) {
         this.fileData = e.target.files[0];
         this.controls.fileDescriptor.innerText = e.target.files[0].name;
     }
@@ -51,9 +54,9 @@ export default class MediaUpload {
      *
      * @param e
      */
-    selectFileClick(e){
+    selectFileClick(e) {
         console.error("select file clicked");
-         this.simulateClick(this.controls.hiddenInput);
+        this.simulateClick(this.controls.hiddenInput);
     }
 
     /**

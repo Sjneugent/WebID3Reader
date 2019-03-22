@@ -1,16 +1,17 @@
 const mediaInfo = require('music-metadata');
 const EventEmitter = require('events').EventEmitter;
 
-class MetadataHandler extends EventEmitter{
-    constructor(filePath){
+class MetadataHandler extends EventEmitter {
+    constructor(filePath) {
         super();
-        mediaInfo.parseFile(filePath).then( meta => {
-                this.collectData(meta);
-        }).catch( (err) => console.error("Music metadata stream error " ,err));
+        mediaInfo.parseFile(filePath).then(meta => {
+            this.collectData(meta);
+        }).catch((err) => console.error("Music metadata stream error ", err));
     }
-    collectData(data){
+
+    collectData(data) {
         this.metadataObject = data;
-        if(this.metadataObject)
+        if (this.metadataObject)
             this.emit('MetadataObjectCreated', this.metadataObject);
     }
 }
