@@ -20,3 +20,14 @@ div.file-descriptor {
   background-color: grey;
   color: white;
 }
+
+#response {
+  display: flex;
+  flex-direction: column;
+}
+#response div.json-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  max-width: 600px;
+}

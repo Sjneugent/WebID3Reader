@@ -6,20 +6,21 @@ router.get('/', function (req, res, next) {
     res.render('index', {title: 'Express'});
 });
 
-router.post('/search', function (req, res, next) {
-    console.error(req);
-    res.send('U GOT IT');
+router.post('/search',  (req, res, next) => {
     req.on('data', (d) => {
         let queryText = String(d);
         let dbCon = new db();
         dbCon._connect();
-        dbCon.searchByHash(queryText, searchCallback);
-
+        dbCon.searchByHash(queryText, searchCallback, res);
     });
+
 });
 
-function searchCallback(err, res) {
-    console.error(res);
+function searchCallback(err, sqlRes,  res) {
+    if(err){
+        res.send(JSON.stringify({type: "Error"}));
+    }else
+        res.send(JSON.stringify(sqlRes));
 }
 
 

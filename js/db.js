@@ -55,12 +55,13 @@ class DB {
         this.connection.commit();
     }
 
-    searchByHash(hash, callback) {
-        this.connection.query(`SELECT * FROM filemetadata WHERE Hash = "${hash}";`, (err, res, field) => {
+    searchByHash(hash, callback, reqObject) {
+        let joinQuery = `SELECT fileInfo.*, fileMetadata.* FROM fileMetadata LEFT JOIN fileInfo ON fileInfo.Hash = fileMetadata.Hash WHERE fileInfo.Hash = "${hash}";`;
+        this.connection.query(joinQuery, (err, res, field) => {
             if (err)
-                callback(err, null);
+                callback(err, null, reqObject);
             else
-                callback(res, null);
+                callback(null, res, reqObject);
         });
     }
 

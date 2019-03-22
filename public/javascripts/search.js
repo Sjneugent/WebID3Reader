@@ -2,7 +2,8 @@ export default class Search {
     constructor() {
         this.controls = {
             searchButton: document.getElementById("search-button"),
-            hashSearchInput: document.getElementById("search-text")
+            hashSearchInput: document.getElementById("search-text"),
+            resultTable: document.getElementById("response")
         };
         this.controls.searchButton.onclick = this.postSearch.bind(this);
     }
@@ -18,6 +19,20 @@ export default class Search {
     searchQueryReceived(e) {
         console.error("Query done");
         console.error(e);
+        let  jsonObj = JSON.parse(e.currentTarget.response);
+        jsonObj = jsonObj[0];
+        for(let k in jsonObj){
+            let tempObj = document.createElement("div");
+            tempObj.classList.add("json-row");
+            let key = document.createElement("div");
+            let value = document.createElement("div");
+            key.innerText = k;
+            value.innerText = jsonObj[k];
+
+            tempObj.appendChild(key);
+            tempObj.appendChild(value);
+            this.controls.resultTable.appendChild(tempObj);
+        }
     }
 
 }
