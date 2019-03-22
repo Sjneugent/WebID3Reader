@@ -26,15 +26,36 @@ class DB {
      * }
      * @param fileStruct
      */
-    insertFileInfo(fileStruct){
-        // doesn't need to be async
-        this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (\"${fileStruct.path}\", \"${fileStruct.name}\", \"${fileStruct.hash}\", \"${fileStruct.size}\");`, function (error, results, fields){
-            // console.error(results);
-            console.error(error);
+    insertFileInfo(fileStruct, callback){
+        this.connection.query(`INSERT INTO fileInfo (FilePath, FileName, Hash, Size) VALUES (\"${fileStruct.path}\", \"${fileStruct.name}\", \"${fileStruct.hash}\", \"${fileStruct.size}\");`,  (error, results, fields) => {
+            if(error){
+                callback(error, null);
+            }
+            else{
+                callback(null, results.insertId);
+            }
         });
         this.connection.commit();
     }
 
+    insertFileMetadata(id3Structure, hash, callback){
+        this.connection.query(`INSERT INTO fileMetadata (Album, TrackName, Format, Duration, AlbumPerformer, Performer, Genre, RecordedDate, Hash) VALUES("${id3Structure.common.album}", "${id3Structure.common.title}", "${id3Structure.format.dataformat}", ${id3Structure.format.duration},"${id3Structure.common.artist}",  "${id3Structure.common.artist}", "${id3Structure.common.genre}", ${id3Structure.common.year}, "${hash}");`, function(error, results, fields) {
+            console.error(error);
+            if(error)
+                callback(error, null);
+            else
+                callback(null, results.insertId);
+        })
+        this.connection.commit();
+    }
+
+    joinTableIds(fileInfoId, fileMetadataId){
+        this.connection.query(`INSERT INTO fileinfometadata (fileInfoID, fileMetadataId) VALUES(${fileInfoId}, ${fileMetadataId});`, function(result, error, fields) {
+            console.error("Finished the joint table");
+            console.error(result);
+        })
+        this.connection.commit();
+    }
     /**
      *
      * @param fileHash

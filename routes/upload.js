@@ -6,10 +6,7 @@ let SaveFile = require("../js/saveFile");
 let DB = require('../js/db');
 let ExtractFileInfo = require('../js/extractFileInfo');
 const md5File = require('md5-file');
-const events = require('events');
-const em = new events.EventEmitter();
-
-
+const MetadataHandler = require('../js/metadataHandler');
 router.get('/', function(req, res, next) {
     res.sendFile(path.resolve('public/html/upload.html'), {title: "upload"});
 });
@@ -24,8 +21,7 @@ router.post('/', function(req, res, next){
     db._connect();
 
     const handleUpload = new HandleUpload(req);
-    const fileName = handleUpload.getFileName();
-    const saveFile = new SaveFile(req, fileName);
+    const saveFile = new SaveFile(req, handleUpload.getFileName());
     req.pipe(saveFile._returnFileStream());
     //TODO: Have some async callback/promise so we don't have to have this in the post method
     //initial request ended
@@ -49,7 +45,15 @@ router.post('/', function(req, res, next){
                     //sync fs stuff
                     console.log("__LINE__: 91 inserting file with hash: " + extract.hash + " into database");
                     //callback kinda
-                    db.insertFileInfo(extract);
+                    db.insertFileInfo(extract, (err, id) => {
+                        let mediaParer = new MetadataHandler(extract.path);
+                        mediaParer.on('MetadataObjectCreated', (f) => {
+                            console.error("MetadataObjectCreated");
+                            db.insertFileMetadata(f, extract.hash, (err, metaId) => {
+                                db.joinTableIds(id, metaId);
+                            });
+                        });
+                    });
                 }else {
                     console.error("file exists already");
                 }
@@ -57,7 +61,7 @@ router.post('/', function(req, res, next){
         });
         });
         //post is done.
-    res.send('File uploaded with name ' + fileName);
+        res.send('File uploaded with name ' +  handleUpload.getFileName());
         // we dont know the request is done uploading -- but it is fully written to disk?
         // I think this solution is momentarily correct.
 

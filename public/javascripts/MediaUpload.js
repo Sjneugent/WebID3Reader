@@ -70,3 +70,5 @@ export default class MediaUpload {
     }
 }
 
+new MediaUpload();
+

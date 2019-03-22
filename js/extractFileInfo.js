@@ -9,7 +9,6 @@ class ExtractFileInfo {
     constructor(filePath) {
         this.filePath = filePath;
         //TODO: Make this asyncronous
-        this.size = fs.statSync(filePath).size;
         this.statPath = filePath;
     }
     /**
@@ -30,14 +29,19 @@ class ExtractFileInfo {
     _returnFileObject() {
         return {
             size: this._returnSize(),
-            path: this.statPath,
+            path: this._returnFilePath(),
             hash: this._returnDigest(),
-            name: this.statPath
+            name: this._returnFileName()
         };
     }
     _returnFilePath() {
         return this.statPath;
     }
+
+    _returnFileName() {
+        return this.statPath.substr(this.statPath.lastIndexOf("/") + 1, this.statPath.length);
+    }
+
 
 
 }
