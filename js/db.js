@@ -58,13 +58,14 @@ class DB {
         let year = this.connection.escape(id3Structure.common.year);
         let bitRate = this.connection.escape(id3Structure.format.bitrate);
         let encoder = this.connection.escape(id3Structure.format.encoder);
-
+        hash = this.connection.escape(hash);
         this.connection.query(`INSERT INTO fileMetadata (Album, TrackName, Format, Duration, AlbumPerformer, Performer, Genre, RecordedDate, Hash, OverallBitRate, WritingLibrary)`
                                 + `VALUES(${album}, ${title}, ${dataFormat}, ${duration},${artist},`
                                 + `${artist}, ${genre}, ${year}, ${hash}, ${bitRate}, ${encoder});`, function (error, results, fields) {
-            if (error)
+            if (error){
+                console.error("Error received on insertFileMetadata ", error);
                 callback(error, null);
-            else
+            } else
                 callback(null, results.insertId);
         });
         this.connection.commit();

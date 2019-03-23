@@ -53,7 +53,7 @@ router.post('/', function (req, res, next) {
                         });
                     });
                 } else {
-                    console.error("file exists already");
+                    console.error("ERROR: File is already in database");
                 }
             });
         });

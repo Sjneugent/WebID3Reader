@@ -18,7 +18,6 @@ export default class Search {
 
     searchQueryReceived(e) {
         console.error("Query done");
-        console.error(e);
         let  jsonObj = JSON.parse(e.currentTarget.response);
         jsonObj = jsonObj[0];
         for(let k in jsonObj){
@@ -27,7 +26,10 @@ export default class Search {
             let key = document.createElement("div");
             let value = document.createElement("div");
             key.innerText = k;
-            value.innerText = jsonObj[k];
+            if(jsonObj.hasOwnProperty(k))
+                value.innerText = jsonObj[k];
+            else
+                value.innerText = 'NULL';
 
             tempObj.appendChild(key);
             tempObj.appendChild(value);
