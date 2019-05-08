@@ -2,8 +2,8 @@ class DB {
     constructor() {
         this.mysql = require('mysql');
         this.host = 'localhost';
-        this.user = 'media';
-        this.password = 'mediaPassword';
+        this.user = 'mymedia';
+        this.password = 'mymedia';
         this.database = 'media';
     }
 
@@ -98,6 +98,44 @@ class DB {
                 callback(null, res, reqObject);
         });
     }
+
+    /**
+     * 
+     * @param callback 
+     * @param reqObject 
+     */
+    findAllSearchableColumns( callback, reqObject) {
+        var fullList = [];
+        this.connection.query(`SELECT * FROM fileMetadata LIMIT 1;`, (error, results, field) => {
+            if (error) {
+                callback(error, null, reqObject);
+            } else {
+                field.forEach(element => {
+                    fullList.push(element.name);
+                });
+                callback(null, fullList, reqObject);
+            }
+        });
+        
+    }
+
+        /**
+     * 
+     * @param {*} input 
+     * @param {*} callback 
+     */
+    searchByAll(queryText, callback, reqObject) {
+        let searchString = queryText.split(":")[0];
+        let columnString = queryText.split(":")[1];
+        this.connection.query(`SELECT * FROM fileMetadata WHERE ${columnString} LIKE "%${searchString}%";`, (error, results, field) => {
+            if (error) {
+                callback(error, null, reqObject);
+            } else {
+                callback(null, results, reqObject);
+            }
+        });
+    }
+
 
     /**
      *

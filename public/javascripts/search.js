@@ -3,12 +3,16 @@ export default class Search {
         this.controls = {
             searchButton: document.getElementById("search-button"),
             hashSearchInput: document.getElementById("search-text"),
+            searchAllButton: document.getElementById("search-all-button"),
+            allSearchInput: document.getElementById("search-all-input"),
             resultTable: document.getElementById("response")
         };
         this.controls.searchButton.onclick = this.postSearch.bind(this);
+        this.controls.searchAllButton.onclick = this.findAllSearchableColumns.bind(this);
     }
 
     postSearch() {
+        this.controls.resultTable.innerHTML = '';
         let xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('POST', '/search', true);
         xmlHttpRequest.setRequestHeader('Content-Type', "text");
@@ -16,8 +20,33 @@ export default class Search {
         xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
     }
 
+    /*### findAllSearchableColumns
+        Returns all columns in the table that can be searched upon.  To be used in tandem
+        with findStringAgainstAllColumns to query each column.
+    ###*/
+    findAllSearchableColumns() {
+        this.controls.resultTable.innerHTML = '';
+        let xmlHttpRequest = new XMLHttpRequest();
+        xmlHttpRequest.open('POST', '/findAllSearchableColumns', true);
+        xmlHttpRequest.setRequestHeader('Content-Type', "text");
+        xmlHttpRequest.send();
+        //xmlHttpRequest.onloadend = this.findStringAgainstAllColumns.bind(this);
+        xmlHttpRequest.onloadend = this.searchQueryReceivedTest.bind(this);
+    }
+
+    /*### findStringAgainstAllColumns
+        Returns any columns that match the current value of the Fuzzy Search bar
+    ###*/
+    findStringAgainstAllColumns(searchValue) {
+        let xmlHttpRequest = new XMLHttpRequest();
+        xmlHttpRequest.open('POST', '/findStringAgainstAllColumns', true);
+        xmlHttpRequest.setRequestHeader('Content-Type', "text");
+        let columnAndSearchValue = (this.controls.allSearchInput.value + ":" + searchValue);
+        xmlHttpRequest.send(columnAndSearchValue);
+        xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
+    }
+
     searchQueryReceived(e) {
-        console.error("Query done");
         let  jsonObj = JSON.parse(e.currentTarget.response);
         jsonObj = jsonObj[0];
         for(let k in jsonObj){
@@ -35,6 +64,14 @@ export default class Search {
             tempObj.appendChild(value);
             this.controls.resultTable.appendChild(tempObj);
         }
+    }
+
+    searchQueryReceivedTest(e) {
+        let  jsonObj = JSON.parse(e.currentTarget.response);
+        for (let j in jsonObj) {
+            this.findStringAgainstAllColumns(jsonObj[j]);
+        }
+        
     }
 
 }
