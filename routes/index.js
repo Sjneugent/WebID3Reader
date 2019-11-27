@@ -16,6 +16,22 @@ router.post('/search',  (req, res, next) => {
 
 });
 
+router.post('/findAllSearchableColumns', (req, res, next) => {
+        let dbCon = new db();
+        dbCon._connect();
+        dbCon.findAllSearchableColumns(searchCallback, res);
+    
+});
+
+router.post('/findStringAgainstAllColumns', (req, res, next) => {
+    req.on('data', (d) => {
+        let queryText = String(d);
+        let dbCon = new db();
+        dbCon._connect();
+        dbCon.searchByAll(queryText, searchCallback, res);
+    });
+});
+
 function searchCallback(err, sqlRes,  res) {
     if(err){
         res.send(JSON.stringify({type: "Error"}));
