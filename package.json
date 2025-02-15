@@ -6,7 +6,7 @@
     "start": "node --use_strict --experimental-modules ./bin/www"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.3",
+    "cookie-parser": "~1.4.7",
     "debug": "~2.6.9",
     "express": "~4.21.2",
     "md5-file": "^4.0.0",
