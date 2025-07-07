@@ -1,13 +1,13 @@
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser');
-let logger = require('morgan');
-let fs = require('fs');
-let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/users');
-let uploadRouter =require('./routes/upload');
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import fs from 'fs';
+import indexRouter from './routes/index';
+import usersRouter from './routes/users';
+import uploadRouter from './routes/upload';
 
-let app = express();
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -24,4 +24,4 @@ if(!fs.existsSync('./uploaded'))
         if (err) console.error('Error creating uploaded directory:', err);
     });
 
-module.exports = app;
+export = app;
