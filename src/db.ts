@@ -1,4 +1,4 @@
-import mysql, { Connection, RowDataPacket, OkPacket, FieldPacket } from 'mysql2/promise';
+import mysql, { Connection, RowDataPacket, OkPacket } from 'mysql2/promise';
 import { IAudioMetadata } from 'music-metadata';
 import { FileInfo } from './types';
 import mysqlConfig from '../config/mysql.json';
@@ -18,6 +18,9 @@ const SEARCHABLE_COLUMNS: ReadonlyMap<string, string> = new Map([
     ['OverallBitRate', 'OverallBitRate'],
     ['WritingLibrary', 'WritingLibrary'],
 ]);
+
+/** MD5 hashes are exactly 32 lowercase hex characters. */
+const MD5_REGEX = /^[0-9a-f]{32}$/i;
 
 class DB {
     private connection?: Connection;
@@ -79,6 +82,9 @@ class DB {
     }
 
     async searchByHash(hash: string): Promise<RowDataPacket[]> {
+        if (!MD5_REGEX.test(hash)) {
+            throw new Error('Invalid hash format.');
+        }
         const conn = this.getConnection();
         const [rows] = await conn.execute<RowDataPacket[]>(
             `SELECT fileInfo.*, fileMetadata.*
@@ -90,21 +96,31 @@ class DB {
         return rows;
     }
 
-    async findAllSearchableColumns(): Promise<string[]> {
-        const conn = this.getConnection();
-        const [, fields]: [RowDataPacket[], FieldPacket[]] = await conn.execute<RowDataPacket[]>(
-            'SELECT * FROM fileMetadata LIMIT 1',
-        );
-        return fields.map((f) => f.name);
+    /**
+     * Returns the list of column names that callers are allowed to search against.
+     * Derived from the static SEARCHABLE_COLUMNS allowlist — no DB round-trip needed
+     * and no internal schema is exposed to callers.
+     */
+    static findAllSearchableColumns(): string[] {
+        return Array.from(SEARCHABLE_COLUMNS.keys());
     }
 
     async searchByAll(queryText: string): Promise<RowDataPacket[]> {
-        const conn = this.getConnection();
-        const [searchString, columnString] = queryText.split(':');
+        const colonIndex = queryText.indexOf(':');
+        if (colonIndex === -1) {
+            throw new Error('Invalid query format. Expected "searchString:columnName".');
+        }
+        const searchString = queryText.slice(0, colonIndex);
+        const columnString = queryText.slice(colonIndex + 1);
         const sqlColumn = SEARCHABLE_COLUMNS.get(columnString);
         if (!sqlColumn) {
-            throw new Error(`Search column "${columnString}" is not allowed.`);
+            throw new Error('The specified search column is not allowed.');
         }
+        const conn = this.getConnection();
+        // `sqlColumn` is a value from the SEARCHABLE_COLUMNS Map whose keys and values
+        // are all hardcoded safe identifiers (no user input reaches this point), so
+        // interpolating it with backtick quoting is safe. MySQL's protocol does not
+        // support parameterized column/identifier names, making this the correct pattern.
         const [rows] = await conn.execute<RowDataPacket[]>(
             `SELECT * FROM fileMetadata WHERE \`${sqlColumn}\` LIKE ?`,
             [`%${searchString}%`],
@@ -113,6 +129,9 @@ class DB {
     }
 
     async fileExists(fileHash: string): Promise<boolean> {
+        if (!MD5_REGEX.test(fileHash)) {
+            throw new Error('Invalid hash format.');
+        }
         const conn = this.getConnection();
         const [rows] = await conn.execute<RowDataPacket[]>(
             'SELECT Hash FROM fileInfo WHERE Hash = ?',

@@ -3,10 +3,21 @@ import DB from '../src/db';
 
 const router = express.Router();
 
+const MAX_BODY_BYTES = 1024;
+
 function readBody(req: Request): Promise<string> {
     return new Promise((resolve, reject) => {
         let body = '';
-        req.on('data', (chunk) => { body += String(chunk); });
+        let size = 0;
+        req.on('data', (chunk: Buffer | string) => {
+            size += Buffer.byteLength(chunk);
+            if (size > MAX_BODY_BYTES) {
+                req.destroy();
+                reject(new Error('Request body too large.'));
+                return;
+            }
+            body += String(chunk);
+        });
         req.on('end', () => resolve(body));
         req.on('error', reject);
     });
@@ -28,15 +39,8 @@ router.post('/search', async (req, res, next) => {
     }
 });
 
-router.post('/findAllSearchableColumns', async (_req, res, next) => {
-    try {
-        const db = new DB();
-        await db.connect();
-        const columns = await db.findAllSearchableColumns();
-        res.json(columns);
-    } catch (err) {
-        next(err);
-    }
+router.post('/findAllSearchableColumns', (_req, res) => {
+    res.json(DB.findAllSearchableColumns());
 });
 
 router.post('/findStringAgainstAllColumns', async (req, res, next) => {
