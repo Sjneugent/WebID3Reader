@@ -1,59 +1,37 @@
-import fs from 'fs';
-import * as md5File from 'md5-file';
+import { promises as fsPromises } from 'fs';
+import { createHash } from 'crypto';
+import { createReadStream } from 'fs';
+import { FileInfo } from './types';
 
-interface FileObject {
-    size: number;
-    path: string;
-    hash: string;
-    name: string;
+async function computeMd5(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const hash = createHash('md5');
+        const stream = createReadStream(filePath);
+        stream.on('data', (chunk) => hash.update(chunk));
+        stream.on('end', () => resolve(hash.digest('hex')));
+        stream.on('error', reject);
+    });
 }
 
 class ExtractFileInfo {
-    private filePath: string;
-    private statPath: string;
+    private readonly filePath: string;
 
-    /**
-     *
-     * @param filePath = file path to extract info from
-     */
     constructor(filePath: string) {
         this.filePath = filePath;
-        //TODO: Make this asyncronous
-        this.statPath = filePath;
     }
 
-    /**
-     * HOLY SHIT
-     *  THE FILE WRITES COMPLETELY CORRECTLY. 100% after checking hashes.
-     *  BUT, BUT, MY GOD.  This fucker starts reading it while its still writing!!!!!
-     *  TODO:  INVESTIGATE OTHER MD5 libraries or roll own.
-     * @returns {*}
-     * @private
-     */
-    private _returnDigest(): string {
-        return md5File.sync(this.filePath);
-    }
-
-    private _returnSize(): number {
-        return fs.statSync(this.filePath).size;
-    }
-
-    _returnFileObject(): FileObject {
+    async getFileInfo(): Promise<FileInfo> {
+        const [hash, stats] = await Promise.all([
+            computeMd5(this.filePath),
+            fsPromises.stat(this.filePath),
+        ]);
         return {
-            size: this._returnSize(),
-            path: this._returnFilePath(),
-            hash: this._returnDigest(),
-            name: this._returnFileName()
+            size: stats.size,
+            path: this.filePath,
+            hash,
+            name: this.filePath.substring(this.filePath.lastIndexOf('/') + 1),
         };
-    }
-
-    private _returnFilePath(): string {
-        return this.statPath;
-    }
-
-    private _returnFileName(): string {
-        return this.statPath.substr(this.statPath.lastIndexOf("/") + 1, this.statPath.length);
     }
 }
 
-export = ExtractFileInfo;
+export default ExtractFileInfo;

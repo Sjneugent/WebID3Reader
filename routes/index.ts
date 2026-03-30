@@ -1,43 +1,58 @@
-import express from 'express';
-import db from '../src/db';
-import { Response } from 'express';
+import express, { Request } from 'express';
+import DB from '../src/db';
 
 const router = express.Router();
 
-/* GET home page. */
-router.get('/', function (req, res, next) {
-    res.render('index', {title: 'Express'});
-});
+const MAX_BODY_BYTES = 1024;
 
-router.post('/search',  (req, res, next) => {
-    req.on('data', (d) => {
-        let queryText = String(d);
-        let dbCon = new db();
-        dbCon._connect();
-        dbCon.searchByHash(queryText, searchCallback, res);
+function readBody(req: Request): Promise<string> {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        let size = 0;
+        req.on('data', (chunk: Buffer | string) => {
+            size += Buffer.byteLength(chunk);
+            if (size > MAX_BODY_BYTES) {
+                req.destroy();
+                reject(new Error('Request body too large.'));
+                return;
+            }
+            body += String(chunk);
+        });
+        req.on('end', () => resolve(body));
+        req.on('error', reject);
     });
-});
-
-router.post('/findAllSearchableColumns', (req, res, next) => {
-        let dbCon = new db();
-        dbCon._connect();
-        dbCon.findAllSearchableColumns(searchCallback, res);
-});
-
-router.post('/findStringAgainstAllColumns', (req, res, next) => {
-    req.on('data', (d) => {
-        let queryText = String(d);
-        let dbCon = new db();
-        dbCon._connect();
-        dbCon.searchByAll(queryText, searchCallback, res);
-    });
-});
-
-function searchCallback(err: any, sqlRes: any, res: Response): void {
-    if(err){
-        res.send(JSON.stringify({type: "Error"}));
-    }else
-        res.send(JSON.stringify(sqlRes));
 }
 
-export = router;
+router.get('/', (_req, res) => {
+    res.render('index', { title: 'Express' });
+});
+
+router.post('/search', async (req, res, next) => {
+    try {
+        const queryText = await readBody(req);
+        const db = new DB();
+        await db.connect();
+        const results = await db.searchByHash(queryText);
+        res.json(results);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/findAllSearchableColumns', (_req, res) => {
+    res.json(DB.findAllSearchableColumns());
+});
+
+router.post('/findStringAgainstAllColumns', async (req, res, next) => {
+    try {
+        const queryText = await readBody(req);
+        const db = new DB();
+        await db.connect();
+        const results = await db.searchByAll(queryText);
+        res.json(results);
+    } catch (err) {
+        next(err);
+    }
+});
+
+export default router;

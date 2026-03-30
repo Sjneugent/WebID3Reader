@@ -1,18 +1,12 @@
-/**
- * Stolen from stack overflow :)
- * @param contentDisposition
- * @returns {string}
- */
 function returnFileName(contentDisposition: string): string {
-    let fileName = "";
-    if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-        let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        let matches = filenameRegex.exec(contentDisposition);
-        if (matches && matches[1]) {
-            fileName = matches[1].replace(/['"]/g, '');
+    if (contentDisposition && contentDisposition.includes('attachment')) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(contentDisposition);
+        if (matches?.[1]) {
+            return matches[1].replace(/['"]/g, '');
         }
     }
-    return fileName;
+    return '';
 }
 
-export = returnFileName;
+export default returnFileName;
