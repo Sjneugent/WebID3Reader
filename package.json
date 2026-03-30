@@ -12,18 +12,15 @@
     "cookie-parser": "~1.4.7",
     "debug": "~2.6.9",
     "express": "~4.22.1",
-    "md5-file": "^4.0.0",
     "morgan": "~1.10.1",
     "music-metadata": "^11.12.3",
-    "mysql": "^2.16.0"
+    "mysql2": "^3.20.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.3",
-    "@types/md5-file": "^4.0.2",
     "@types/morgan": "^1.9.10",
-    "@types/mysql": "^2.15.27",
     "@types/node": "^24.0.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

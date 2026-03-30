@@ -19,9 +19,10 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/upload', uploadRouter);
 
-if(!fs.existsSync('./uploaded'))
+if (!fs.existsSync('./uploaded')) {
     fs.mkdir('./uploaded', (err) => {
         if (err) console.error('Error creating uploaded directory:', err);
     });
+}
 
-export = app;
+export default app;
