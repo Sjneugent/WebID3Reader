@@ -1,3 +1,17 @@
+const SEARCHABLE_COLUMNS = [
+    'Album',
+    'TrackName',
+    'Format',
+    'Duration',
+    'AlbumPerformer',
+    'Performer',
+    'Genre',
+    'RecordedDate',
+    'Hash',
+    'OverallBitRate',
+    'WritingLibrary'
+];
+
 class DB {
     constructor() {
         this.mysql = require('mysql');
@@ -125,9 +139,16 @@ class DB {
      * @param {*} callback 
      */
     searchByAll(queryText, callback, reqObject) {
-        let searchString = queryText.split(":")[0];
-        let columnString = queryText.split(":")[1];
-        this.connection.query(`SELECT * FROM fileMetadata WHERE ${columnString} LIKE "%${searchString}%";`, (error, results, field) => {
+        const trimmedQuery = queryText.trim();
+        if (!trimmedQuery) {
+            callback(null, [], reqObject);
+            return;
+        }
+        const searchString = `%${trimmedQuery}%`;
+        // SEARCHABLE_COLUMNS is a local hardcoded allowlist; no user input reaches identifiers.
+        const whereClause = SEARCHABLE_COLUMNS.map((column) => `\`${column}\` LIKE ?`).join(' OR ');
+        const values = SEARCHABLE_COLUMNS.map(() => searchString);
+        this.connection.query(`SELECT * FROM fileMetadata WHERE ${whereClause};`, values, (error, results, field) => {
             if (error) {
                 callback(error, null, reqObject);
             } else {
