@@ -8,7 +8,7 @@ export default class Search {
             resultTable: document.getElementById("response")
         };
         this.controls.searchButton.onclick = this.postSearch.bind(this);
-        this.controls.searchAllButton.onclick = this.findAllSearchableColumns.bind(this);
+        this.controls.searchAllButton.onclick = this.findStringAgainstAllColumns.bind(this);
     }
 
     postSearch() {
@@ -18,14 +18,6 @@ export default class Search {
         xmlHttpRequest.setRequestHeader('Content-Type', "text");
         xmlHttpRequest.send(this.controls.hashSearchInput.value);
         xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
-    }
-
-    /*### findAllSearchableColumns
-        Maintained as the click target for the fuzzy-search button.
-        Delegates directly to findStringAgainstAllColumns.
-    ###*/
-    findAllSearchableColumns() {
-        this.findStringAgainstAllColumns();
     }
 
     /*### findStringAgainstAllColumns
@@ -47,18 +39,14 @@ export default class Search {
             return;
         }
 
-        for (let i = 0; i < records.length; i++) {
-            let jsonObj = records[i];
-            for(let k in jsonObj){
+        for (const jsonObj of records) {
+            for (const k of Object.keys(jsonObj)) {
                 let tempObj = document.createElement("div");
                 tempObj.classList.add("json-row");
                 let key = document.createElement("div");
                 let value = document.createElement("div");
                 key.innerText = k;
-                if(jsonObj.hasOwnProperty(k))
-                    value.innerText = jsonObj[k];
-                else
-                    value.innerText = 'NULL';
+                value.innerText = jsonObj[k];
 
                 tempObj.appendChild(key);
                 tempObj.appendChild(value);
