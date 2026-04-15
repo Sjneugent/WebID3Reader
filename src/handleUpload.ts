@@ -1,13 +1,13 @@
-import headerParse from './parseHeader';
 import { Request } from 'express';
+import parseHeader from './parseHeader';
 
 class HandleUpload {
-    private request: Request;
-    private fileName: string;
+    private readonly request: Request;
+    private readonly fileName: string;
 
     constructor(request: Request) {
         this.request = request;
-        this.fileName = headerParse(this.request.headers['content-disposition'] || '');
+        this.fileName = parseHeader(this.request.headers['content-disposition'] ?? '');
     }
 
     getFileName(): string {
@@ -15,4 +15,4 @@ class HandleUpload {
     }
 }
 
-export = HandleUpload;
+export default HandleUpload;

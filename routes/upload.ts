@@ -4,95 +4,40 @@ import HandleUpload from '../src/handleUpload';
 import SaveFile from '../src/saveFile';
 import DB from '../src/db';
 import ExtractFileInfo from '../src/extractFileInfo';
-import * as md5File from 'md5-file';
-import MetadataHandler from '../src/metadataHandler';
+import parseMetadata from '../src/metadataHandler';
 
 const router = express.Router();
 
-router.get('/', function (req, res, next) {
+router.get('/', (_req, res) => {
     res.sendFile(path.resolve('public/html/upload.html'));
 });
 
-/**
- *
- *  POST => localhost:3000/upload/
- *  Receive XMLHTTPRequest with file info.  on.('data') chunks are sent and written with fs.write
- */
-router.post('/', function (req, res, next) {
-    const db = new DB();
-    db._connect();
+router.post('/', async (req, res, next) => {
+    try {
+        const db = new DB();
+        await db.connect();
 
-    const handleUpload = new HandleUpload(req);
-    const saveFile = new SaveFile(req, handleUpload.getFileName());
-    req.pipe(saveFile._returnFileStream());
-    //TODO: Abstract it out to get rid of shitty code.
-    //initial request ended
-    req.on('end', (e: any) => {
-        saveFile._uploadFinished(e);
-        //fixed!  Modularize and break out.  This is callback hell
-        //callback
-        saveFile.on('FileStreamClosed', () => {
-            let fileHandle = saveFile._returnFilePath();
-            let extractFileInfo = new ExtractFileInfo(fileHandle);
-            let extract = extractFileInfo._returnFileObject();
-            //callback :(
-            db.fileExistsAsync((extract.hash), function (err, data) {
-                if (err) {
-                    console.error("Error executing query");
-                    return;
-                }
-                if (data.length === 0) {
-                    console.log("__LINE__: 91 inserting file with hash: " + extract.hash + " into database");
-                    db.insertFileInfo(extract, (err, id) => {
-                        if (err) {
-                            console.error("Error inserting file info:", err);
-                            return;
-                        }
-                        let mediaParer = new MetadataHandler(extract.path);
-                        mediaParer.on('MetadataObjectCreated', (f) => {
-                            db.insertFileMetadata(f, extract.hash, (err, metaId) => {
-                                if (err) {
-                                    console.error("Error inserting file metadata:", err);
-                                    return;
-                                }
-                                console.error("Insert File Metadata id " + metaId);
-                                db.joinTableIds(id, metaId);
-                            });
-                        });
-                    });
-                } else {
-                    console.error("file exists already");
-                }
-            });
-        });
-    });
+        const fileName = new HandleUpload(req).getFileName();
+        const saveFile = new SaveFile(req, fileName);
+        await saveFile.waitForClose();
 
-    req.on('error', (e) => {
-        console.error(e);
-    });
+        const extractor = new ExtractFileInfo(saveFile.filePath);
+        const fileInfo = await extractor.getFileInfo();
+
+        const exists = await db.fileExists(fileInfo.hash);
+        if (!exists) {
+            const [fileInfoId, metadata] = await Promise.all([
+                db.insertFileInfo(fileInfo),
+                parseMetadata(fileInfo.path),
+            ]);
+            const metadataId = await db.insertFileMetadata(metadata, fileInfo.hash);
+            await db.joinTableIds(fileInfoId, metadataId);
+        }
+
+        res.json({ status: 'ok' });
+    } catch (err) {
+        next(err);
+    }
 });
 
-/**
- * BROKEN
- * @param extractFileObject
- * @param db
- */
-function wrapDbCall(extractFileObject: any, db: any): void {
-    db.fileExistsAsync((extractFileObject.dig), function (err: any, data: any) {
-        if (err) {
-            console.error("Error executing query");
-            return;
-        }
-        if (data.length === 0) {
-            //sync fs stuff
-            console.log("__LINE__: 91 inserting file with hash: " + md5File.sync(extractFileObject.path) + " into database");
-            db.insertFileInfo(extractFileObject);
-        } else {
-            console.error("file exists already");
-        }
-        // this one is always right, due to it coming after :(
-        console.error("__LINE__: 57 " + md5File.sync(extractFileObject._returnFilePath()));
-    });
-}
-
-export = router;
+export default router;
