@@ -125,9 +125,22 @@ class DB {
      * @param {*} callback 
      */
     searchByAll(queryText, callback, reqObject) {
-        let searchString = queryText.split(":")[0];
-        let columnString = queryText.split(":")[1];
-        this.connection.query(`SELECT * FROM fileMetadata WHERE ${columnString} LIKE "%${searchString}%";`, (error, results, field) => {
+        let searchString = this.connection.escape(`%${String(queryText).trim()}%`);
+        if (searchString === this.connection.escape('%%')) {
+            callback(null, [], reqObject);
+            return;
+        }
+        this.connection.query(`SELECT * FROM fileMetadata WHERE Album LIKE ${searchString}
+            OR TrackName LIKE ${searchString}
+            OR Format LIKE ${searchString}
+            OR Duration LIKE ${searchString}
+            OR AlbumPerformer LIKE ${searchString}
+            OR Performer LIKE ${searchString}
+            OR Genre LIKE ${searchString}
+            OR RecordedDate LIKE ${searchString}
+            OR Hash LIKE ${searchString}
+            OR OverallBitRate LIKE ${searchString}
+            OR WritingLibrary LIKE ${searchString};`, (error, results, field) => {
             if (error) {
                 callback(error, null, reqObject);
             } else {

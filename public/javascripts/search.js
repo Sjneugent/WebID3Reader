@@ -21,57 +21,50 @@ export default class Search {
     }
 
     /*### findAllSearchableColumns
-        Returns all columns in the table that can be searched upon.  To be used in tandem
-        with findStringAgainstAllColumns to query each column.
+        Maintained as the click target for the fuzzy-search button.
+        Delegates directly to findStringAgainstAllColumns.
     ###*/
     findAllSearchableColumns() {
-        this.controls.resultTable.innerHTML = '';
-        let xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.open('POST', '/findAllSearchableColumns', true);
-        xmlHttpRequest.setRequestHeader('Content-Type', "text");
-        xmlHttpRequest.send();
-        //xmlHttpRequest.onloadend = this.findStringAgainstAllColumns.bind(this);
-        xmlHttpRequest.onloadend = this.searchQueryReceivedTest.bind(this);
+        this.findStringAgainstAllColumns();
     }
 
     /*### findStringAgainstAllColumns
         Returns any columns that match the current value of the Fuzzy Search bar
     ###*/
-    findStringAgainstAllColumns(searchValue) {
+    findStringAgainstAllColumns() {
+        this.controls.resultTable.innerHTML = '';
         let xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('POST', '/findStringAgainstAllColumns', true);
         xmlHttpRequest.setRequestHeader('Content-Type', "text");
-        let columnAndSearchValue = (this.controls.allSearchInput.value + ":" + searchValue);
-        xmlHttpRequest.send(columnAndSearchValue);
+        xmlHttpRequest.send(this.controls.allSearchInput.value);
         xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
     }
 
     searchQueryReceived(e) {
-        let  jsonObj = JSON.parse(e.currentTarget.response);
-        jsonObj = jsonObj[0];
-        for(let k in jsonObj){
-            let tempObj = document.createElement("div");
-            tempObj.classList.add("json-row");
-            let key = document.createElement("div");
-            let value = document.createElement("div");
-            key.innerText = k;
-            if(jsonObj.hasOwnProperty(k))
-                value.innerText = jsonObj[k];
-            else
-                value.innerText = 'NULL';
-
-            tempObj.appendChild(key);
-            tempObj.appendChild(value);
-            this.controls.resultTable.appendChild(tempObj);
+        let records = JSON.parse(e.currentTarget.response);
+        if (!records.length) {
+            this.controls.resultTable.innerText = 'No matching records found.';
+            return;
         }
-    }
 
-    searchQueryReceivedTest(e) {
-        let  jsonObj = JSON.parse(e.currentTarget.response);
-        for (let j in jsonObj) {
-            this.findStringAgainstAllColumns(jsonObj[j]);
+        for (let i = 0; i < records.length; i++) {
+            let jsonObj = records[i];
+            for(let k in jsonObj){
+                let tempObj = document.createElement("div");
+                tempObj.classList.add("json-row");
+                let key = document.createElement("div");
+                let value = document.createElement("div");
+                key.innerText = k;
+                if(jsonObj.hasOwnProperty(k))
+                    value.innerText = jsonObj[k];
+                else
+                    value.innerText = 'NULL';
+
+                tempObj.appendChild(key);
+                tempObj.appendChild(value);
+                this.controls.resultTable.appendChild(tempObj);
+            }
         }
-        
     }
 
 }
