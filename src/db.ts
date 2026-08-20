@@ -106,24 +106,17 @@ class DB {
     }
 
     async searchByAll(queryText: string): Promise<RowDataPacket[]> {
-        const colonIndex = queryText.indexOf(':');
-        if (colonIndex === -1) {
-            throw new Error('Invalid query format. Expected "searchString:columnName".');
-        }
-        const searchString = queryText.slice(0, colonIndex);
-        const columnString = queryText.slice(colonIndex + 1);
-        const sqlColumn = SEARCHABLE_COLUMNS.get(columnString);
-        if (!sqlColumn) {
-            throw new Error('The specified search column is not allowed.');
+        const searchString = queryText.trim();
+        if (!searchString) {
+            return [];
         }
         const conn = this.getConnection();
-        // `sqlColumn` is a value from the SEARCHABLE_COLUMNS Map whose keys and values
-        // are all hardcoded safe identifiers (no user input reaches this point), so
-        // interpolating it with backtick quoting is safe. MySQL's protocol does not
-        // support parameterized column/identifier names, making this the correct pattern.
+        const sqlColumns = Array.from(SEARCHABLE_COLUMNS.values());
+        const whereClause = sqlColumns.map((column) => `\`${column}\` LIKE ?`).join(' OR ');
+        const bindings = sqlColumns.map(() => `%${searchString}%`);
         const [rows] = await conn.execute<RowDataPacket[]>(
-            `SELECT * FROM fileMetadata WHERE \`${sqlColumn}\` LIKE ?`,
-            [`%${searchString}%`],
+            `SELECT * FROM fileMetadata WHERE ${whereClause}`,
+            bindings,
         );
         return rows;
     }

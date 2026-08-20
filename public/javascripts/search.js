@@ -8,7 +8,7 @@ export default class Search {
             resultTable: document.getElementById("response")
         };
         this.controls.searchButton.onclick = this.postSearch.bind(this);
-        this.controls.searchAllButton.onclick = this.findAllSearchableColumns.bind(this);
+        this.controls.searchAllButton.onclick = this.findStringAgainstAllColumns.bind(this);
     }
 
     postSearch() {
@@ -20,58 +20,39 @@ export default class Search {
         xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
     }
 
-    /*### findAllSearchableColumns
-        Returns all columns in the table that can be searched upon.  To be used in tandem
-        with findStringAgainstAllColumns to query each column.
-    ###*/
-    findAllSearchableColumns() {
-        this.controls.resultTable.innerHTML = '';
-        let xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.open('POST', '/findAllSearchableColumns', true);
-        xmlHttpRequest.setRequestHeader('Content-Type', "text");
-        xmlHttpRequest.send();
-        //xmlHttpRequest.onloadend = this.findStringAgainstAllColumns.bind(this);
-        xmlHttpRequest.onloadend = this.searchQueryReceivedTest.bind(this);
-    }
-
     /*### findStringAgainstAllColumns
         Returns any columns that match the current value of the Fuzzy Search bar
     ###*/
-    findStringAgainstAllColumns(searchValue) {
+    findStringAgainstAllColumns() {
+        this.controls.resultTable.innerHTML = '';
         let xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open('POST', '/findStringAgainstAllColumns', true);
         xmlHttpRequest.setRequestHeader('Content-Type', "text");
-        let columnAndSearchValue = (this.controls.allSearchInput.value + ":" + searchValue);
-        xmlHttpRequest.send(columnAndSearchValue);
+        xmlHttpRequest.send(this.controls.allSearchInput.value);
         xmlHttpRequest.onloadend = this.searchQueryReceived.bind(this);
     }
 
     searchQueryReceived(e) {
-        let  jsonObj = JSON.parse(e.currentTarget.response);
-        jsonObj = jsonObj[0];
-        for(let k in jsonObj){
-            let tempObj = document.createElement("div");
-            tempObj.classList.add("json-row");
-            let key = document.createElement("div");
-            let value = document.createElement("div");
-            key.innerText = k;
-            if(jsonObj.hasOwnProperty(k))
+        let records = JSON.parse(e.currentTarget.response);
+        if (!records.length) {
+            this.controls.resultTable.innerText = 'No matching records found.';
+            return;
+        }
+
+        for (const jsonObj of records) {
+            for (const k of Object.keys(jsonObj)) {
+                let tempObj = document.createElement("div");
+                tempObj.classList.add("json-row");
+                let key = document.createElement("div");
+                let value = document.createElement("div");
+                key.innerText = k;
                 value.innerText = jsonObj[k];
-            else
-                value.innerText = 'NULL';
 
-            tempObj.appendChild(key);
-            tempObj.appendChild(value);
-            this.controls.resultTable.appendChild(tempObj);
+                tempObj.appendChild(key);
+                tempObj.appendChild(value);
+                this.controls.resultTable.appendChild(tempObj);
+            }
         }
-    }
-
-    searchQueryReceivedTest(e) {
-        let  jsonObj = JSON.parse(e.currentTarget.response);
-        for (let j in jsonObj) {
-            this.findStringAgainstAllColumns(jsonObj[j]);
-        }
-        
     }
 
 }
