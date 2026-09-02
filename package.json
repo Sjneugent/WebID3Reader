@@ -14,7 +14,7 @@
     "express": "~4.22.2",
     "morgan": "~1.11.0",
     "music-metadata": "^11.12.3",
-    "mysql2": "^3.20.0"
+    "mysql2": "^3.22.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
